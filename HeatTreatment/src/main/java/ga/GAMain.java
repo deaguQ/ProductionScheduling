@@ -5,6 +5,8 @@ import main.java.entity.Workpiece;
 import main.java.util.FileReadUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class GAMain {
     public static void main(String[] args) {
@@ -15,14 +17,11 @@ public class GAMain {
         System.out.println("begin");
         long beginT = System.currentTimeMillis();
         long beginM = Runtime.getRuntime().freeMemory();
-
         ArrayList<Machine> machineList = FileReadUtil.getAllMachine();
         ArrayList<Workpiece> workpieceList = FileReadUtil.getAllWorkpiece();
-        //sort all the scenery according to viewCount
-//		Collections.sort(sceneryList);
-//		Collections.reverse(sceneryList);
-
-        GA ga = new GA(300, 1000, 0.9, 0.9);
+        //机器容积从大到小排列
+        Collections.sort(machineList, (o1, o2) -> o2.getCapacity()-o1.getCapacity());
+        GA ga = new GA(100, 5, 0.9, 0.9);
         ga.init(workpieceList,machineList);
         ga.run();
 
