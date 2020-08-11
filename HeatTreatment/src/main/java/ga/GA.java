@@ -465,14 +465,22 @@ public class GA {
             curMachineTime[curMachine - 1] += curMaxTime;
             System.out.println("批次"+curBatch+"在机器"+curMachine+"完工时间:"+curMachineTime[curMachine - 1]);
             System.out.println("-----------");
-            //下一批次选择最先空闲的机器
+            //下一批次选择最先空闲的机器,这里存在一个问题可能会出现机器一个都装不下的情况
             if (!set.isEmpty()) {
                 curBatch++;
-                for (int j = 0; j < machineNum; j++) {
-                    if (curMachineTime[j] < curMachineTime[curMachine - 1])
-                        curMachine = j + 1;
+                int curBound = 0;
+                for (int i : bestChromosome) {//遍历一边当前未安排工件
+                    if (set.contains(i)) {
+                        curBound = workpieces.get(i).getV();
+                        break;
+                    }
+                    for (int j = 0; j < machineNum; j++) {
+                        if (curMachineTime[j] < curMachineTime[curMachine - 1] && machines.get(j).getCapacity() >= curBound)//防止一个都装不下的情况
+                            curMachine = j + 1;
+                    }
+                    curLimit = machines.get(curMachine - 1).getCapacity();
                 }
-                curLimit = machines.get(curMachine - 1).getCapacity();
+
             }
 
         }
