@@ -21,7 +21,7 @@ public class GAMain {
         ArrayList<Workpiece> workpieceList = FileReadUtil.getAllWorkpiece();
         //机器容积从大到小排列
         Collections.sort(machineList, (o1, o2) -> o2.getCapacity()-o1.getCapacity());
-        GA ga = new GA(100, 100, 0.9, 0.9);
+        GA ga = new GA(100, 500, 0.9, 0.9);
         ga.init(workpieceList,machineList);
         ga.run();
 

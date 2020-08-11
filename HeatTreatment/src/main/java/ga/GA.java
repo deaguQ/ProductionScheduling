@@ -441,7 +441,7 @@ public class GA {
     }
 
     /**
-     * 解码，生成甘特图
+     * 解码
      */
     private void decodeChromosome () {
         HashSet<Integer> set = new HashSet<>();
@@ -469,7 +469,7 @@ public class GA {
             if (!set.isEmpty()) {
                 curBatch++;
                 int curBound = 0;
-                for (int i : bestChromosome) {//遍历一边当前未安排工件
+                for (int i : bestChromosome) {//遍历一边当前未安排工件,找到curBound
                     if (set.contains(i)) {
                         curBound = workpieces.get(i).getV();
                         break;
@@ -490,5 +490,11 @@ public class GA {
             maxT = Math.max(maxT, curMachineTime[j]);
         }
         System.out.println("最大完工时间为" + maxT);
+    }
+    /**
+     * 甘特图
+     */
+    public void gant(){
+
     }
 }
