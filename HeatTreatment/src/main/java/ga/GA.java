@@ -130,10 +130,7 @@ public class GA {
             }
             //将工件序号洗牌,例：0，1，2，3，4->2，3，1，4，0
             shuffle(oldPopulation[i]);
-//            for(int j=0;j<workpiecesNum;j++){
-//                System.out.print(oldPopulation[i][j]+" ");
-//            }
-//            System.out.println();
+//            printChromosome(oldPopulation[i]);
 
         }
     }
@@ -309,21 +306,25 @@ public class GA {
 
     /**
      * 交叉算子，两点交叉,相邻染色体交叉产生不同子代染色体
+     * 这里存在问题
      * @param k1 染色体编号 14|653|72 ->     14|371|72->54|371|62
      * @param k2 染色体编号 26|371|45 ->     26|653|45->21|653|45
      */
     private void crossover ( int k1, int k2){
-        //随机发生交叉的位置
+//        printChromosome(newPopulation[k1]);
+//        printChromosome(newPopulation[k2]);
+//        System.out.println("*******");
+        //随机发生交叉的位置[pos1,pos2]
         int pos1 = getRandomNum() % workpiecesNum;
         int pos2 = getRandomNum() % workpiecesNum;
         //确保pos1和pos2两个位置不同
 //        while(pos1 == pos2){
 //            pos2 = getRandomNum() % workpiecesNum;
 //        }
-        if (pos1 == pos2)
-            pos2 = pos1 + 1;
+//        if (pos1 == pos2)
+//            pos2 = pos1 + 1;
 
-        //确保pos1小于pos2
+        //确保pos1小于等于pos2
         if (pos1 > pos2) {
             int tmpPos = pos1;
             pos1 = pos2;
@@ -332,7 +333,7 @@ public class GA {
         boolean[] flag1 = new boolean[workpiecesNum];
         boolean[] flag2 = new boolean[workpiecesNum];
         //交换两条染色体中间部分
-        for (int i = pos1; i < pos2; i++) {
+        for (int i = pos1; i <= pos2; i++) {
             int t = newPopulation[k1][i];
             newPopulation[k1][i] = newPopulation[k2][i];
             flag1[newPopulation[k1][i]] = true;
@@ -341,7 +342,7 @@ public class GA {
         }
         //检查染色体中重复工件号并替换
         for (int i = 0; i < workpiecesNum; i++) {
-            if ((i < pos1 || i >= pos2) && flag1[newPopulation[k1][i]])//非交叉点位间出现重复
+            if ((i < pos1 || i > pos2) && flag1[newPopulation[k1][i]])//非交叉点位间出现重复
                 for (int j = 0; i < workpiecesNum; j++) {
                     if (!flag1[j]) {
                         newPopulation[k1][i] = j;
@@ -349,7 +350,9 @@ public class GA {
                         break;
                     }
                 }
-            if ((i < pos1 || i >= pos2) && flag2[newPopulation[k2][i]])//非交叉点位间出现重复
+            else//忘记加这一步导致程序错误
+                flag1[newPopulation[k1][i]]=true;
+            if ((i < pos1 || i > pos2) && flag2[newPopulation[k2][i]])//非交叉点位间出现重复
                 for (int j = 0; i < workpiecesNum; j++) {
                     if (!flag2[j]) {
                         newPopulation[k2][i] = j;
@@ -357,8 +360,13 @@ public class GA {
                         break;
                     }
                 }
+            else//忘记加这一步导致程序错误
+                flag2[newPopulation[k2][i]]=true;
 
         }
+//        printChromosome(newPopulation[k1]);
+//        printChromosome(newPopulation[k2]);
+//        System.out.println("------------");
 
     }
     /**
@@ -389,8 +397,10 @@ public class GA {
             if (ran < this.pc) {
                 //如果小于pc，则进行交叉
                 crossover(i, i + 1);
-            } else {
-                //否者，进行变异
+//                System.out.println("-----");
+            }
+            else {
+                //否则，进行变异
                 ran = random.nextDouble();
                 if (ran < this.pm) {
                     //变异染色体i
@@ -404,6 +414,15 @@ public class GA {
                 }
             }
         }
+    }
+    /**
+     * 打印染色体
+     */
+    public void printChromosome(int[] chromosome){
+        for(int i=0;i<chromosome.length;i++){
+            System.out.print(chromosome[i]+" ");
+        }
+        System.out.println();
     }
     /**
      * 解决问题
@@ -445,23 +464,38 @@ public class GA {
      */
     private void decodeChromosome () {
         HashSet<Integer> set = new HashSet<>();
-        for (int i : bestChromosome)
+        for (int i : bestChromosome){
             set.add(i);
+        }
+        printChromosome(bestChromosome);
+
         int curBatch = 1;//当前批次
         int curMachine = 1;//当前机器号
         int[] curMachineTime = new int[machineNum];//当前机器工作时间
         int curLimit = machines.get(curMachine - 1).getCapacity();//当前批次还能容许的体积
+        List<Integer> start_time=new ArrayList<>();//每一个批次的开始时间
+        List<Integer> duration_time=new ArrayList<>();//每一个批次的持续时间
+        List<Integer> machine_start=new ArrayList<>();//每一个批次对应机器
+        List<String> p_g=new ArrayList<>();//每一个批次的所有加工工件
+
         while (!set.isEmpty()) {//当存在未安排的工件时不断进行分批处理
             //按顺序扫描所有工件，若能加入当前批次，则从工件集合中删去，并更新染色体，否则继续循环
             int curMaxTime = Integer.MIN_VALUE;//当前批次所需加工时间
+            start_time.add(curMachineTime[curMachine-1]);
+            machine_start.add(curMachine);
+            String curWorkpieces="' ";
             for (int i : bestChromosome) {//遍历一边当前未安排工件
                 if (set.contains(i) && curLimit >= workpieces.get(i).getV()) {//当前机器还能容纳下工件
                     set.remove(i);
+                    curWorkpieces=curWorkpieces+(i+1)+" ";
                     System.out.println( "机器"+curMachine +"---"+"批次"+curBatch +"---工件" + (i + 1));
                     curLimit -= workpieces.get(i).getV();
                     curMaxTime = Math.max(curMaxTime, workpieces.get(i).getT());//批次的加工时间等于批次中工件的最长加工时间
                 }
             }
+            curWorkpieces+="'";
+            p_g.add(curWorkpieces);
+            duration_time.add(curMaxTime);
             curMachineTime[curMachine - 1] += curMaxTime;
             System.out.println("批次"+curBatch+"在机器"+curMachine+"完工时间:"+curMachineTime[curMachine - 1]);
             System.out.println("-----------");
@@ -474,12 +508,13 @@ public class GA {
                         curBound = workpieces.get(i).getV();
                         break;
                     }
-                    for (int j = 0; j < machineNum; j++) {
-                        if (curMachineTime[j] < curMachineTime[curMachine - 1] && machines.get(j).getCapacity() >= curBound)//防止一个都装不下的情况
-                            curMachine = j + 1;
-                    }
-                    curLimit = machines.get(curMachine - 1).getCapacity();
+
                 }
+                for (int j = 0; j < machineNum; j++) {
+                    if (curMachineTime[j] < curMachineTime[curMachine - 1] && machines.get(j).getCapacity() >= curBound)//防止一个都装不下的情况
+                        curMachine = j + 1;
+                }
+                curLimit = machines.get(curMachine - 1).getCapacity();
 
             }
 
@@ -490,7 +525,23 @@ public class GA {
             maxT = Math.max(maxT, curMachineTime[j]);
         }
         System.out.println("最大完工时间为" + maxT);
+        printList(start_time);
+        printList(duration_time);
+        printList(machine_start);
+        printList(p_g);
     }
+
+    private void printList(List list) {
+        for(Object i:list)
+            System.out.print(i+",");
+        System.out.println();
+    }
+    private void printList2(List list) {
+        for(Object i:list)
+            System.out.print(i+",");
+        System.out.println();
+    }
+
     /**
      * 甘特图
      */
