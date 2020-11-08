@@ -2,18 +2,25 @@ package main.java.entity;
 
 public class Workpiece {
     //工件id
-    private int id;
+    public int id;
     //工件体积
-    private int v;
+    public int v;
     //加工所需时间
-    private int t;
-
+    public int t;
+    //各工序加工所需时间
+    public int[] times;
+    //当前时间
+    public int curT;
     public Workpiece(int id, int v, int t) {
         this.id = id;
         this.v = v;
         this.t = t;
     }
-
+    public Workpiece(int id, int v, int... t) {
+        this.id = id;
+        this.v = v;
+        this.times = t;
+    }
     public int getId() {
         return id;
     }

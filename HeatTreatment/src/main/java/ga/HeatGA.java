@@ -6,7 +6,7 @@ import main.java.entity.Workpiece;
 import java.util.*;
 
 
-public class GA {
+public class HeatGA {
 
     /**
      * 种群规模
@@ -95,7 +95,7 @@ public class GA {
      * @param pc 交叉概率
      * @param pm 变异概率
      */
-    public GA(int scale, int maxGen, double pc, double pm){
+    public HeatGA(int scale, int maxGen, double pc, double pm){
         this.scale = scale;
         this.maxGen = maxGen;
         this.pc = pc;
@@ -164,57 +164,67 @@ public class GA {
      * @param chromosome 染色体
      */
     public double evaluate(int index, int[] chromosome) {
-        Set<Integer> set = new HashSet<>();
+        Set<Integer> unHandle = new HashSet<>();
         for (int i : chromosome)
-            set.add(i);
+            unHandle.add(i);
         int curBatch = 1;//当前批次
         int curMachine = 1;//当前机器号
         int[] curMachineTime = new int[machineNum];//当前机器工作时间
         int curLimit = machines.get(curMachine - 1).getCapacity();//当前批次还能容许的体积
-        while (!set.isEmpty()) {//当存在未安排的工件时不断进行分批处理
+        while (!unHandle.isEmpty()) {//当存在未安排的工件时不断进行分批处理
             //按顺序扫描所有工件，若能加入当前批次，则从工件集合中删去，并更新染色体，否则继续循环
             int curMaxTime = Integer.MIN_VALUE;//当前批次所需加工时间
             for (int i : chromosome) {//遍历一边当前未安排工件
-                if (set.contains(i) && curLimit >= workpieces.get(i).getV()) {//当前机器还能容纳下工件
-                    set.remove(i);
+                if (unHandle.contains(i) && curLimit >= workpieces.get(i).getV()) {//当前机器还能容纳下工件
+                    unHandle.remove(i);
 //                    System.out.println("工件"+i+"在第"+curBatch+"批次，在"+curMachine+"号机器上");
                     curLimit -= workpieces.get(i).getV();
                     curMaxTime = Math.max(curMaxTime, workpieces.get(i).getT());//批次的加工时间等于批次中工件的最长加工时间
                 }
             }
             curMachineTime[curMachine - 1] += curMaxTime;
-            //下一批次选择最先空闲的机器,这里存在一个问题可能会出现机器一个都装不下的情况
-            if (!set.isEmpty()) {
+            if (!unHandle.isEmpty()) {
                 curBatch++;
                 int curBound = 0;
-                for (int i : chromosome) {//遍历一边当前未安排工件
-                    if (set.contains(i)) {
+                /*for (int i : chromosome) {//遍历一边当前未安排工件
+                    if (unHandle.contains(i)) {
                         curBound = workpieces.get(i).getV();
-                        break;
+//                        break;
                     }
                     for (int j = 0; j < machineNum; j++) {
+                        //找出最先空闲的集群
                         if (curMachineTime[j] < curMachineTime[curMachine - 1] && machines.get(j).getCapacity() >= curBound)//防止一个都装不下的情况
                             curMachine = j + 1;
                     }
                     curLimit = machines.get(curMachine - 1).getCapacity();
+                }*/
+
+                for (int j = 0; j < machineNum; j++) {
+                    //找出最先空闲的集群
+                    if (curMachineTime[j] < curMachineTime[curMachine - 1])
+                        curMachine = j + 1;
                 }
+                curLimit = machines.get(curMachine - 1).getCapacity();
 
             }
-            //寻找最大完工时间,即所有机器的最大工作时间
+
+
+
+          /*  //寻找最大完工时间,即所有机器的最大工作时间
             int maxT = Integer.MIN_VALUE;
             for (int j = 0; j < curMachineTime.length; j++) {
                 maxT = Math.max(maxT, curMachineTime[j]);
             }
 //        System.out.println("最大完工时间为"+maxT);
             fitness[index] = 1 / (double) maxT;
-            return fitness[index];
+            return fitness[index];*/
         }
         //寻找最大完工时间,即所有机器的最大工作时间
         int maxT=Integer.MIN_VALUE;
         for(int j=0;j<curMachineTime.length;j++){
             maxT=Math.max(maxT,curMachineTime[j]);
         }
-        System.out.println("最大完工时间为"+maxT);
+//        System.out.println("最大完工时间为"+maxT);
         fitness[index]=1/(double)maxT;
         return fitness[index];
     }

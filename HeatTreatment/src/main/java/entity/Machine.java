@@ -1,9 +1,11 @@
 package main.java.entity;
 
 public class Machine {
-    private int id;
-    private int capacity;
-
+    public int id;
+    public int capacity;
+    //机器类型：熔练，铸造，热处理
+    public int type;
+    public int curT;
     public int getId() {
         return id;
     }
@@ -23,5 +25,21 @@ public class Machine {
     public Machine(int id, int capacity) {
         this.id = id;
         this.capacity = capacity;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public int getCurT() {
+        return curT;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public void setCurT(int curT) {
+        this.curT = curT;
     }
 }
