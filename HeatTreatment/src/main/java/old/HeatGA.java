@@ -1,7 +1,7 @@
-package main.java.ga;
+package main.java.old;
 
-import main.java.entity.Machine;
-import main.java.entity.Workpiece;
+import main.java.old.entity.Machine;
+import main.java.old.entity.Workpiece;
 
 import java.util.*;
 
